@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 · 奔赴 | 拾光·毕业纪</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="insite.css">
+    <style>
+        /* 全局重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全屏轮播容器 */
+        .fullscreen-carousel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* 轮播幻灯片 */
+        .carousel-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.2s ease-in-out;
+            z-index: 0;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* 暗色遮罩层 - 让文字更清晰 */
+        .overlay-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, 
+                rgba(0, 0, 0, 0.5) 0%,
+                rgba(0, 0, 0, 0.3) 50%,
+                rgba(0, 0, 0, 0.5) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* 内容容器 */
+        .content-container {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 30px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 标题区域 */
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .page-title {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFD700, #FFA500, #F06292);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 2px;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 15px;
+        }
+
+        .page-subtitle::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #FFD700, #F06292);
+            border-radius: 3px;
+        }
+
+        /* 回忆卡片 */
+        .memory-card {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 30px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .memory-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .memory-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #FFD700, #F06292);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .memory-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #FFD700;
+            letter-spacing: 1px;
+        }
+
+        /* 文字编辑器 */
+        .text-editor {
+            width: 100%;
+            min-height: 280px;
+            padding: 20px 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 1.05rem;
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', sans-serif;
+            resize: vertical;
+            outline: none;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .text-editor:focus {
+            border-color: #FFD700;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .text-editor::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        /* 按钮区域 */
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .save-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #FFD700, #F06292);
+            border: none;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .save-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+        }
+
+        .back-home-btn {
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 40px;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-home-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        /* 轮播控制按钮 - 悬浮显示 */
+        .carousel-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .carousel-controls:hover {
+            opacity: 1;
+        }
+
+        .carousel-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-btn:hover {
+            background: linear-gradient(135deg, #FFD700, #F06292);
+            transform: scale(1.1);
+            border-color: transparent;
+        }
+
+        /* 指示点 */
+        .carousel-dots {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 10;
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: #FFD700;
+            transform: scale(1.3);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        /* 添加照片按钮 */
+        .add-photo-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 10;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .add-photo-btn:hover {
+            background: linear-gradient(135deg, #FFD700, #F06292);
+            transform: scale(1.1);
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .content-container {
+                padding: 40px 20px;
+            }
+            .page-title {
+                font-size: 2.5rem;
+            }
+            .page-subtitle {
+                font-size: 1rem;
+            }
+            .memory-card {
+                padding: 25px;
+            }
+            .memory-title {
+                font-size: 1.4rem;
+            }
+            .text-editor {
+                min-height: 200px;
+                font-size: 0.95rem;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            .save-btn, .back-home-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .carousel-controls, .carousel-dots {
+                bottom: 20px;
+            }
+            .carousel-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content-container {
+                padding: 30px 15px;
+            }
+            .page-title {
+                font-size: 2rem;
+            }
+            .memory-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 全屏轮播背景 -->
+    <div class="fullscreen-carousel" id="fullscreen-carousel">
+        <div class="carousel-slide active">
+            <img src="./images/timeline3.jpg" alt="2025回忆1">
+        </div>
+        <div class="carousel-slide">
+            <img src="./images/2025-2.jpg" alt="2025回忆2">
+        </div>
+    </div>
+
+    <!-- 暗色遮罩 -->
+    <div class="overlay-mask"></div>
+
+    <!-- 内容区域 -->
+    <div class="content-container">
+        <div class="page-header">
+            <h1 class="page-title">2025 · 奔赴</h1>
+            <p class="page-subtitle">实习与抉择，奔赴未来</p>
+        </div>
+
+        <div class="memory-card">
+            <div class="memory-header">
+                <div class="memory-icon">
+                    <i class="fas fa-pen-fancy"></i>
+                </div>
+                <h2 class="memory-title">回忆与感悟</h2>
+            </div>
+            <textarea class="text-editor" id="memory-text" 
+                      placeholder="写下2025年你的实习经历、人生抉择、未来规划...&#10;&#10;例如：&#10;• 第一次踏入职场是什么感受？&#10;• 面临人生选择时的心情？&#10;• 对未来有什么规划和期待？"></textarea>
+            <div class="button-group">
+                <button class="save-btn" onclick="saveMemory()">
+                    <i class="fas fa-save"></i> 保存回忆记录
+                </button>
+                <a href="website.html" class="back-home-btn">
+                    <i class="fas fa-home"></i> 返回时光轴首页
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 轮播控制按钮 -->
+    <div class="carousel-controls">
+        <button class="carousel-btn" onclick="prevSlide()">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="carousel-btn" onclick="nextSlide()">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- 指示点 -->
+    <div class="carousel-dots" id="carousel-dots"></div>
+
+    <!-- 添加照片按钮 -->
+    <button class="add-photo-btn" onclick="document.getElementById('photo-input').click()">
+        <i class="fas fa-plus"></i>
+    </button>
+    <input type="file" id="photo-input" accept="image/*" style="display: none;" onchange="addPhoto(this)">
+
+    <script>
+        let currentSlide = 0;
+        let slides = [];
+        let autoPlayInterval;
+
+        // 初始化轮播
+        function initCarousel() {
+            const container = document.getElementById('fullscreen-carousel');
+            slides = Array.from(container.querySelectorAll('.carousel-slide'));
+            
+            // 创建指示点
+            const dotsContainer = document.getElementById('carousel-dots');
+            dotsContainer.innerHTML = '';
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'dot' + (index === currentSlide ? ' active' : '');
+                dot.onclick = () => goToSlide(index);
+                dotsContainer.appendChild(dot);
+            });
+            
+            // 启动自动轮播
+            startAutoPlay();
+        }
+        
+        // 切换到指定幻灯片
+        function goToSlide(index) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = index;
+            slides[currentSlide].classList.add('active');
+            
+            // 更新指示点
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+        }
+        
+        // 上一张
+        function prevSlide() {
+            let newIndex = currentSlide - 1;
+            if (newIndex < 0) newIndex = slides.length - 1;
+            goToSlide(newIndex);
+            resetAutoPlay();
+        }
+        
+        // 下一张
+        function nextSlide() {
+            let newIndex = currentSlide + 1;
+            if (newIndex >= slides.length) newIndex = 0;
+            goToSlide(newIndex);
+            resetAutoPlay();
+        }
+        
+        // 启动自动轮播
+        function startAutoPlay() {
+            if (autoPlayInterval) clearInterval(autoPlayInterval);
+            autoPlayInterval = setInterval(() => {
+                nextSlide();
+            }, 5000);
+        }
+        
+        // 重置自动轮播
+        function resetAutoPlay() {
+            if (autoPlayInterval) clearInterval(autoPlayInterval);
+            autoPlayInterval = setInterval(() => {
+                nextSlide();
+            }, 5000);
+        }
+        
+        // 添加照片到轮播
+        function addPhoto(input) {
+            if (input.files && input.files.length > 0) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const container = document.getElementById('fullscreen-carousel');
+                    const newSlide = document.createElement('div');
+                    newSlide.className = 'carousel-slide';
+                    newSlide.innerHTML = `<img src="${e.target.result}" alt="用户添加的照片">`;
+                    container.appendChild(newSlide);
+                    
+                    // 更新slides数组
+                    slides = Array.from(container.querySelectorAll('.carousel-slide'));
+                    
+                    // 更新指示点
+                    const dotsContainer = document.getElementById('carousel-dots');
+                    dotsContainer.innerHTML = '';
+                    slides.forEach((_, index) => {
+                        const dot = document.createElement('div');
+                        dot.className = 'dot';
+                        dot.onclick = () => goToSlide(index);
+                        dotsContainer.appendChild(dot);
+                    });
+                    
+                    // 切换到新照片
+                    goToSlide(slides.length - 1);
+                    
+                    // 保存到localStorage
+                    saveCarouselImages();
+                    
+                    // 显示成功提示
+                    showToast('✨ 照片已添加到轮播！');
+                };
+                
+                reader.readAsDataURL(file);
+            }
+            input.value = '';
+        }
+        
+        // 保存轮播图片到localStorage
+        function saveCarouselImages() {
+            const slidesElements = document.querySelectorAll('.carousel-slide img');
+            const images = [];
+            slidesElements.forEach(img => {
+                images.push(img.src);
+            });
+            localStorage.setItem('carousel-2025', JSON.stringify(images));
+        }
+        
+        // 从localStorage加载轮播图片
+        function loadCarouselImages() {
+            const saved = localStorage.getItem('carousel-2025');
+            if (saved) {
+                const images = JSON.parse(saved);
+                const container = document.getElementById('fullscreen-carousel');
+                container.innerHTML = '';
+                
+                images.forEach((src, index) => {
+                    const slide = document.createElement('div');
+                    slide.className = 'carousel-slide' + (index === 0 ? ' active' : '');
+                    slide.innerHTML = `<img src="${src}" alt="回忆照片">`;
+                    container.appendChild(slide);
+                });
+                
+                initCarousel();
+            } else {
+                initCarousel();
+            }
+        }
+        
+        // 保存文字记录
+        function saveMemory() {
+            const text = document.getElementById('memory-text').value;
+            localStorage.setItem('memory-2025', text);
+            showToast('✨ 回忆记录已保存！');
+        }
+        
+        // 加载文字记录
+        function loadMemory() {
+            const saved = localStorage.getItem('memory-2025');
+            if (saved) {
+                document.getElementById('memory-text').value = saved;
+            }
+        }
+        
+        // 显示提示消息
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                color: #FFD700;
+                padding: 12px 24px;
+                border-radius: 40px;
+                font-size: 0.9rem;
+                z-index: 1000;
+                animation: fadeInUp 0.3s ease;
+                border: 1px solid rgba(255, 215, 0, 0.3);
+                white-space: nowrap;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+        
+        // 页面加载
+        window.onload = function() {
+            loadCarouselImages();
+            loadMemory();
+            
+            // 鼠标悬停时暂停自动轮播
+            const carousel = document.getElementById('fullscreen-carousel');
+            if (carousel) {
+                carousel.addEventListener('mouseenter', () => {
+                    if (autoPlayInterval) clearInterval(autoPlayInterval);
+                });
+                carousel.addEventListener('mouseleave', startAutoPlay);
+            }
+        };
+    </script>
+</body>
+</html>
